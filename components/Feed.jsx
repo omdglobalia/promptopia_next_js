@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 
 import PromptCard from "./PromptCard";
+import { useSession } from "next-auth/react";
+import { useDispatch } from "react-redux";
+import { setUserInfo } from "@utils/slices/authSlice";
 
 const PromptCardList = ({ data, handleTagClick }) => {
   return (
@@ -19,6 +22,9 @@ const PromptCardList = ({ data, handleTagClick }) => {
 };
 
 const Feed = () => {
+  const { data: session } = useSession();
+  const dispatch = useDispatch();
+
   const [allPosts, setAllPosts] = useState([]);
 
   // Search states
@@ -34,8 +40,32 @@ const Feed = () => {
   };
 
   useEffect(() => {
+    if (session) {
+      const createUser = async () => {
+        try {
+          const response = await fetch("/api/user", {
+            method: "POST",
+            body: JSON.stringify({
+              email: session?.user.email,
+              username: session?.user.name,
+              image: session?.user.image,
+            })
+          })
+          const user = await response.json();
+          dispatch(setUserInfo({
+            email: user.email,
+            username: user.username,
+            image: user.image,
+            id: user._id
+          }))
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      createUser()
+    }
     fetchPosts();
-  }, []);
+  }, [session]);
 
   const filterPrompts = (searchtext) => {
     const regex = new RegExp(searchtext, "i"); // 'i' flag for case-insensitive search

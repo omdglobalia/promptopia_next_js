@@ -3,10 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { signIn, signOut, useSession, getProviders } from "next-auth/react";
+import { signIn, signOut, getProviders } from "next-auth/react";
+import { useDispatch, useSelector } from "react-redux";
+import { setUserInfo } from "@utils/slices/authSlice";
 
 const Nav = () => {
-  const { data: session } = useSession();
+  const USER_INFO = useSelector((state) => state.auth.userInfo)
+  const dispatch = useDispatch()
 
   const [providers, setProviders] = useState(null);
   const [toggleDropdown, setToggleDropdown] = useState(false);
@@ -33,19 +36,22 @@ const Nav = () => {
 
       {/* Desktop Navigation */}
       <div className='sm:flex hidden'>
-        {session?.user ? (
+        {USER_INFO?.username ? (
           <div className='flex gap-3 md:gap-5'>
             <Link href='/create-prompt' className='black_btn'>
               Create Post
             </Link>
 
-            <button type='button' onClick={signOut} className='outline_btn'>
+            <button type='button' onClick={() => {
+              signOut()
+              dispatch(setUserInfo({}))
+            }} className='outline_btn'>
               Sign Out
             </button>
 
             <Link href='/profile'>
               <Image
-                src={session?.user.image}
+                src={USER_INFO?.image}
                 width={37}
                 height={37}
                 className='rounded-full'
@@ -74,10 +80,10 @@ const Nav = () => {
 
       {/* Mobile Navigation */}
       <div className='sm:hidden flex relative'>
-        {session?.user ? (
+        {USER_INFO?.username ? (
           <div className='flex'>
             <Image
-              src={session?.user.image}
+              src={USER_INFO?.image}
               width={37}
               height={37}
               className='rounded-full'
@@ -106,6 +112,7 @@ const Nav = () => {
                   onClick={() => {
                     setToggleDropdown(false);
                     signOut();
+                    dispatch(setUserInfo({}))
                   }}
                   className='mt-5 w-full black_btn'
                 >

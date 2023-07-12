@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 import Form from "@components/Form";
+import { useSelector } from "react-redux";
 
 const CreatePrompt = () => {
   const router = useRouter();
-  const { data: session } = useSession();
-  console.log("🚀 ~ file: page.jsx:12 ~ CreatePrompt ~ session:", session)
+  const USER_INFO = useSelector((state) => state.auth.userInfo)
 
   const [submitting, setIsSubmitting] = useState(false);
   const [post, setPost] = useState({ prompt: "", tag: "" });
@@ -19,12 +18,12 @@ const CreatePrompt = () => {
     setIsSubmitting(true);
 
     try {
-      if (session?.user.id) {
+      if (USER_INFO) {
         const response = await fetch("/api/prompt/new", {
           method: "POST",
           body: JSON.stringify({
             prompt: post.prompt,
-            userId: session?.user.id,
+            userId: USER_INFO.id,
             tag: post.tag,
           }),
         });
@@ -32,7 +31,7 @@ const CreatePrompt = () => {
         if (response.ok) {
           router.push("/");
         }
-      }else{
+      } else {
         alert("Something went wrong!")
       }
     } catch (error) {
